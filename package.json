@@ -6,6 +6,7 @@
   "directories": {
     "test": "test"
   },
+  "typings": "index.d.ts",
   "dependencies": {},
   "devDependencies": {
     "babel-core": "^6.26.0",
