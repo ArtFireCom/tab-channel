@@ -26,10 +26,7 @@ function msgHandler(e) {
       obj.channelId === this.channelId &&
       !this.closed
     ) {
-      let msg =
-        typeof obj.message === "string"
-          ? obj.message
-          : JSON.stringify(obj.message);
+      let msg = obj.isJSON ? JSON.parse(obj.message) : obj.message;
       this.onmessage({ data: msg });
       setTimeout(function() {
         window.localStorage.removeItem(key);
@@ -63,6 +60,7 @@ class TabChannel {
     const msgObj = {
       channelId: this.channelId,
       instanceId: this.instanceId,
+      isJSON: typeof msg !== "string",
       message: typeof msg === "string" ? msg : JSON.stringify(msg)
     };
     const key = _msgFlag + getRandomString() + "_" + this.channelId;
