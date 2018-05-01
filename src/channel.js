@@ -1,7 +1,4 @@
-let _tabId = null,
-  _registered = false,
-  _msgFlag = "TcMsg_oo_",
-  _channels = [];
+let _msgFlag = "TcMsg_oo_";
 
 function getRandomString(length) {
   let text = "",
@@ -25,7 +22,7 @@ function msgHandler(e) {
     }
 
     if (
-      obj.tabId !== _tabId &&
+      obj.instanceId !== this.instanceId &&
       obj.channelId === this.channelId &&
       !this.closed
     ) {
@@ -34,7 +31,9 @@ function msgHandler(e) {
           ? obj.message
           : JSON.stringify(obj.message);
       this.onmessage({ data: msg });
-      window.localStorage.removeItem(key);
+      setTimeout(function() {
+        window.localStorage.removeItem(key);
+      }, 1000);
     }
   }
 }
@@ -51,14 +50,9 @@ class TabChannel {
     this.name = channelName;
     this.channelId = channelName;
     this.handler = msgHandler.bind(this);
-    _tabId = _tabId || getRandomString();
-    _channels.push(this.channelId);
+    this.instanceId = getRandomString();
 
-    if (!_registered) {
-      _registered = true;
-
-      window.addEventListener("storage", this.handler, false);
-    }
+    window.addEventListener("storage", this.handler, false);
   }
   postMessage(msg) {
     if (this.closed) {
@@ -68,13 +62,27 @@ class TabChannel {
 
     const msgObj = {
       channelId: this.channelId,
-      tabId: _tabId,
+      instanceId: this.instanceId,
       message: typeof msg === "string" ? msg : JSON.stringify(msg)
     };
     const key = _msgFlag + getRandomString() + "_" + this.channelId;
 
     try {
-      window.localStorage.setItem(key, JSON.stringify(msgObj));
+      const newValue = JSON.stringify(msgObj);
+      window.localStorage.setItem(key, newValue);
+
+      var evt = document.createEvent("StorageEvent");
+      evt.initStorageEvent(
+        "storage",
+        false,
+        false,
+        key,
+        null,
+        newValue,
+        window.location.href,
+        window.localStorage
+      );
+      window.dispatchEvent(evt);
     } catch (e) {
       this.onmessageerror(e);
     }
@@ -85,16 +93,7 @@ class TabChannel {
   }
   close() {
     this.closed = true;
-    let index = _channels.indexOf(this.channelId);
-
-    if (index > -1) {
-      _channels.splice(index, 1);
-    }
-
-    if (_channels.length === 0) {
-      window.removeEventListener("storage", this.handler);
-      _registered = false;
-    }
+    window.removeEventListener("storage", this.handler);
   }
   onmessage() {
     // override by user

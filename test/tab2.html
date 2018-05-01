@@ -13,7 +13,13 @@
       height: 100%;
       font-size: 100px;
     }
-
+    .other {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
     .wrap {
       height: 100%;
       display: flex;
@@ -31,15 +37,23 @@
   <script src="channel.js"></script>
 </head>
 <body>
+  <div class="other">
 <div class="wrap">
   <div class="act" onclick="minus()">-</div>
   <div id="counter">0</div>
   <div class="act" onclick="add()">+</div>
 </div>
+<div class="wrap">
+  <div class="act" onclick="minus2()">-</div>
+  <div id="counter2">0</div>
+  <div class="act" onclick="add2()">+</div>
+</div>
+</div>
 <script>
   var count = 0
   var bc = new TabChannel.default('channel')
   bc.onmessage = function (msg) {
+    console.log(msg)
     count = JSON.parse(msg.data).count
     updateCount(count)
   }
@@ -61,6 +75,33 @@
 
   function updateCount (num) {
     document.getElementById('counter').innerText = num
+  }
+
+  var count2 = 0
+  var bc2 = new TabChannel.default('channel')
+  bc2.onmessage = function (msg) {
+    console.log(msg)
+    count2 = JSON.parse(msg.data).count
+    updateCount2(count2)
+  }
+  bc2.onmessageerror = function(e) {
+    console.log(e)
+  }
+
+  function minus2 () {
+    count2--;
+    bc2.postMessage(JSON.stringify({count: count2}))
+    updateCount2(count2)
+  }
+
+  function add2 () {
+    count2++;
+    bc2.postMessage(JSON.stringify({count: count2}))
+    updateCount2(count2)
+  }
+
+  function updateCount2 (num) {
+    document.getElementById('counter2').innerText = num
   }
 </script>
 </body>
